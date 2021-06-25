@@ -1,9 +1,11 @@
-// var pathName = document.location.pathname
-// var index = pathName.substr(1).indexOf("/")
-// const room = pathName.substr(0,index+1)
+var pathName = document.location.pathname
+const room = pathName.substr(1)
+
+// const getinterval = 1
+const conntimeout = 4
 
 const lc = new RTCPeerConnection()
-const dc = lc.createDataChannel("123123")
+const dc = lc.createDataChannel("webrtc")
 dc.onmessage = e => {
     $("#mess").append($("<h3>").text('对方: '+e.data))
     roll()
@@ -15,7 +17,7 @@ dc.onopen = e => {
 }
 lc.onicecandidate = e => {
     if (lc.iceGatheringState=="complete"){
-        axios.post("http://abcs.ml:9999/off/test",lc.localDescription)
+        axios.post("http://abcs.ml:9999/off/"+room,lc.localDescription)
     }
     // $("#my_icecandidate").text(JSON.stringify(lc.localDescription))
     console.log("ice" + JSON.stringify(lc.localDescription))
@@ -40,10 +42,15 @@ async function init(){
     var o = await lc.createOffer({"iceRestart": true})
     await lc.setLocalDescription(o)
     console.log("set sucess")
-    var result = await axios.get('http://abcs.ml:9999/off/test')
-    // var result = await axios.post("http://abcs.ml:9999/off/test",lc.localDescription)
+    // var result = await axios.get('http://abcs.ml:9999/off/'+room)
+    // var result = await axios.post("http://abcs.ml:9999/off/"+room,lc.localDescription)
+
+    var asking = false
     var ans = setInterval(async function(){
-        var result = await axios.get('http://abcs.ml:9999/off/test')
+        if (asking == true) {return}
+        asking = true
+        var result = await axios.get('http://abcs.ml:9999/off/'+room)
+        rec = result
         if (result.data.code){
             await lc.setRemoteDescription(result.data.mess)
             console.log(result.data.mess)
@@ -53,9 +60,11 @@ async function init(){
                 if (lc.iceConnectionState!="connected"){
                     alert("连接失败")
                 }
-            },6*1000)
+            },conntimeout*1000)
+
         }
-    },5*1000)
+        asking = false
+    },100)
     // o = await sendOffer()
     // console.log(`send off ${o}`)
 }

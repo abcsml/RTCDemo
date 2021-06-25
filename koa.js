@@ -3,13 +3,15 @@ const cors = require('koa2-cors');
 const Router = require('koa-router');
 const bodyParser = require('koa-bodyparser');
 const static = require('koa-static');
+const fs = require('fs');
 
 const app = new Koa();
 const router = new Router();
 
 //const deadLine = 10 // min
-const clearTime = 30 // sec
-const delayTime = 2 // sec
+const clearTime = 40 // sec
+const delayTime = 1 // sec
+const waittime = 19 // sec
 
 var online = {};
 const blockRoom = ['favicon.ico','off','ans'];
@@ -41,6 +43,21 @@ async function createRoom(room, delTime) {
 	//		console.log(`[debug] Timeout ${room}`)
 	//	}
 	//}, delTime);
+};
+async function waitother(room, other, waittime) {
+	return new Promise(function(resolve, reject) {
+		let t = new Date();
+		var it = setInterval(function(){
+			if (other in online[room]) {
+				clearInterval(it);
+				resolve(1);
+			}
+			if ((Date.now() - t)/1000 > waittime) {
+				clearInterval(it);
+				resolve(0);
+			}
+		}, 50);
+	});
 }
 
 app.use(static(__dirname+'/static'))
@@ -62,20 +79,34 @@ app.use(async (ctx, next) => {
 router.get('/off/:room', async (ctx, next) => {
 	var room = ctx.params.room;
 	if (!(room in online)) {
-		createRoom(room, 10*60*1000);
-		ctx.response.body = {code:0,mess:'create room'};
+		// createRoom(room, 10*60*1000);
+		// ctx.response.body = {code:0,mess:'create room'};
+		// return;
+		ctx.response.body = {code:-1,mess:'room not exit'};
 		return;
 	}
-	if ('ans' in online[room]) {
+	var result = await waitother(room, 'ans', waittime);
+	if (result == 1) {
 		ctx.response.body = {code:1,mess:online[room]['ans']};
 		delete online[room];
-		console.log(`[debug] del ${room}`)
+		console.log(`[debug] del ${room}`);
+		console.log(ctx.response.body);
 	} else {
 		// renew
 		online[room]['alive'] = 1;
 		await delay(delayTime);
 		ctx.response.body = {code:0,mess:'no ans'};
 	}
+	// if ('ans' in online[room]) {
+	// 	ctx.response.body = {code:1,mess:online[room]['ans']};
+	// 	delete online[room];
+	// 	console.log(`[debug] del ${room}`)
+	// } else {
+	// 	// renew
+	// 	online[room]['alive'] = 1;
+	// 	await delay(delayTime);
+	// 	ctx.response.body = {code:0,mess:'no ans'};
+	// }
 });
 router.get('/ans/:room', async (ctx, next) => {
 	var room = ctx.params.room;
@@ -83,12 +114,18 @@ router.get('/ans/:room', async (ctx, next) => {
 		ctx.response.body = {code:-1,mess:'room not exit'};
 		return;
 	}
-	if ('off' in online[room]) {
+	var result = await waitother(room, 'off', waittime);
+	if (result == 1) {
 		ctx.response.body = {code:1,mess:online[room]['off']};
 	} else {
-		await delay(delayTime);
 		ctx.response.body = {code:0,mess:'no off'};
 	}
+	// if ('off' in online[room]) {
+	// 	ctx.response.body = {code:1,mess:online[room]['off']};
+	// } else {
+	// 	await delay(delayTime);
+	// 	ctx.response.body = {code:0,mess:'no off'};
+	// }
 });
 router.post('/:meth/:room', async (ctx, next) => {
 	var room = ctx.params.room;
@@ -113,11 +150,13 @@ router.get(['/:room','/'], async (ctx, next) => {
 		ctx.response.body = `<h1>not allow<h1>`;
 		return;
 	}
-	if (room in online) {
-		ctx.response.body = `<h2>again!!<h2>`;
-	}else{
+	if (room in online) {		// answer
+		var htmlContent = fs.readFileSync("static/answer.html");
+		ctx.response.body = htmlContent;
+	} else {					// offer
 		createRoom(room, 5000);
-		ctx.response.body = `<h1>${room}!</h1>`;
+		var htmlContent = fs.readFileSync("static/offer.html");
+		ctx.response.body = htmlContent;
 	}
 });
 //router.get('/', async (ctx, next) => {
