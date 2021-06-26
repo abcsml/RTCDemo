@@ -16,12 +16,12 @@ dc.onopen = e => {
     console.log("connect!!!")
 }
 lc.onicecandidate = e => {
-    if (lc.iceGatheringState=="complete"){
-        axios.post("http://abcs.ml:9999/off/"+room,lc.localDescription)
-    }
-    // $("#my_icecandidate").text(JSON.stringify(lc.localDescription))
-    console.log("ice" + JSON.stringify(lc.localDescription))
-    console.log(`c: ${lc.iceConnectionState}, G: ${lc.iceGatheringState}`)
+    // if (lc.iceGatheringState=="complete"){
+    //     axios.post("http://abcs.ml:9999/off/"+room,lc.localDescription)
+    // }
+    // // $("#my_icecandidate").text(JSON.stringify(lc.localDescription))
+    // console.log("ice" + JSON.stringify(lc.localDescription))
+    // console.log(`c: ${lc.iceConnectionState}, G: ${lc.iceGatheringState}`)
 }
 
 //     lc.setRemoteDescription(JSON.parse($("#other_icecandidate")))
@@ -33,6 +33,12 @@ $(document).ready(function(){
         $("#mess").append($("<h3>").text('我: '+data))
         roll()
         dc.send(data)
+        $("#content").val("")
+    })
+    $("#content").bind("keyup",function(event) {
+        if (event.keyCode == "13") {
+            $("#input").click()
+        }
     })
 })
 
@@ -67,10 +73,33 @@ async function init(){
     },100)
     // o = await sendOffer()
     // console.log(`send off ${o}`)
+    var result = await waitting(function() {
+        return (lc.iceGatheringState=="complete")
+    }, 1*60)
+    // console.log("waitting com")
+    if (result) {
+        axios.post("http://abcs.ml:9999/off/"+room,lc.localDescription)
+    } else {alert("error")}
+}
+
+async function waitting(f, outtime) {
+    return new Promise(function(resolve, reject) {
+        var t = new Date()
+        var it = setInterval(function() {
+            if (f()) {
+                clearInterval(it)
+                resolve(true)
+            }
+            if ((Date.now() - t)/1000 > outtime) {
+                clearInterval(it)
+                resolve(false)
+            }
+        }, 100)
+    })
 }
 
 function roll(){
     $("html, body").animate({
         scrollTop: $('html, body').get(0).scrollHeight
-    }, 100);
+    }, 100)
 }

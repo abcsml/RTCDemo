@@ -7,16 +7,16 @@ const conntimeout = 4
 const rc = new RTCPeerConnection()
 rc.onicecandidate = e => {
     // $("#my_icecandidate").text(JSON.stringify(rc.localDescription))
-    if (rc.iceGatheringState=="complete"){
-        axios.post("http://abcs.ml:9999/ans/"+room,rc.localDescription)
-        setTimeout(()=>{
-            if (rc.iceConnectionState!="connected"){
-                alert("连接失败")
-            }
-        },conntimeout*1000)
-    }
-    console.log("ice" + JSON.stringify(rc.localDescription))
-    console.log(`c: ${rc.iceConnectionState}, G: ${rc.iceGatheringState}`)
+    // if (rc.iceGatheringState=="complete"){
+    //     axios.post("http://abcs.ml:9999/ans/"+room,rc.localDescription)
+    //     setTimeout(()=>{
+    //         if (rc.iceConnectionState!="connected"){
+    //             alert("连接失败")
+    //         }
+    //     },conntimeout*1000)
+    // }
+    // console.log("ice" + JSON.stringify(rc.localDescription))
+    // console.log(`c: ${rc.iceConnectionState}, G: ${rc.iceGatheringState}`)
 }
 rc.ondatachannel = e => {
     rc.dc = e.channel
@@ -36,11 +36,18 @@ rc.ondatachannel = e => {
 
 $(document).ready(function(){
     init()
+
     $("#input").click(function(){
         let data = $("#content").val()
         $("#mess").append($("<h3>").text('我: '+data))
         roll()
         rc.dc.send(data)
+        $("#content").val("")
+    })
+    $("#content").bind("keyup",function(event) {
+        if (event.keyCode == "13") {
+            $("#input").click()
+        }
     })
 })
 
@@ -70,6 +77,35 @@ async function init(){
         }
         asking = false
     },100)
+
+    var result = await waitting(function() {
+        return (rc.iceGatheringState=="complete")
+    }, 1*60)
+    // console.log("waitting com")
+    if (result) {
+        axios.post("http://abcs.ml:9999/ans/"+room,rc.localDescription)
+        setTimeout(()=>{
+            if (rc.iceConnectionState!="connected"){
+                alert("连接失败")
+            }
+        },conntimeout*1000)
+    } else {alert("error")}
+}
+
+async function waitting(f, outtime) {
+    return new Promise(function(resolve, reject) {
+        var t = new Date()
+        var it = setInterval(function() {
+            if (f()) {
+                clearInterval(it)
+                resolve(true)
+            }
+            if ((Date.now() - t)/1000 > outtime) {
+                clearInterval(it)
+                resolve(false)
+            }
+        }, 100)
+    })
 }
 
 function roll(){

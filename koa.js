@@ -9,9 +9,9 @@ const app = new Koa();
 const router = new Router();
 
 //const deadLine = 10 // min
-const clearTime = 40 // sec
+const clearTime = 21 // sec
 const delayTime = 1 // sec
-const waittime = 19 // sec
+const waittime = 10 // sec
 
 var online = {};
 const blockRoom = ['favicon.ico','off','ans'];
@@ -46,14 +46,17 @@ async function createRoom(room, delTime) {
 };
 async function waitother(room, other, waittime) {
 	return new Promise(function(resolve, reject) {
-		let t = new Date();
+		var t = new Date();
 		var it = setInterval(function(){
-			if (other in online[room]) {
+			if (!(room in online)) {clearInterval(it);resolve(-1)};
+			if (room in online && other in online[room]) {
 				clearInterval(it);
+				console.log("[debug] exit wait return 1");
 				resolve(1);
 			}
 			if ((Date.now() - t)/1000 > waittime) {
 				clearInterval(it);
+				console.log("[debug] exit wait return 0");
 				resolve(0);
 			}
 		}, 50);
@@ -90,7 +93,6 @@ router.get('/off/:room', async (ctx, next) => {
 		ctx.response.body = {code:1,mess:online[room]['ans']};
 		delete online[room];
 		console.log(`[debug] del ${room}`);
-		console.log(ctx.response.body);
 	} else {
 		// renew
 		online[room]['alive'] = 1;
@@ -143,7 +145,7 @@ router.post('/:meth/:room', async (ctx, next) => {
 		ctx.response.body = {code:1,mess:'succ'};
 	}
 });
-router.get(['/:room','/'], async (ctx, next) => {
+router.get(['/:room'], async (ctx, next) => {
 	ctx.set("Content-Type", "text/html;charset=utf-8")
 	var room = ctx.params.room;
 	if (blockRoom.includes(room)) {
