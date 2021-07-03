@@ -78,6 +78,14 @@ app.use(async (ctx, next) => {
 	await next();
 });
 
+router.get('/cre/:room', async (ctx, next) => {
+	var room = ctx.params.room;
+	if (!(room in online)) {
+		createRoom(room, 10*60*1000);
+		ctx.response.body = {code:0,mess:'create room'};
+		return;
+	}
+});
 
 router.get('/off/:room', async (ctx, next) => {
 	var room = ctx.params.room;
