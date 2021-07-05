@@ -1,45 +1,34 @@
 const Koa = require('koa')
 const app = new Koa()
-// const views = require('koa-views')
+const router = require('koa-router')()
 const cors = require('koa2-cors')
 const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
-const logger = require('koa-logger')
-// const fs = require('fs')
-
-const index = require('./routes/index')
-const api = require('./routes/api')
 
 // conf
-//const deadLine = 10 // min
-// const clearTime = 21 // sec
-// const delayTime = 1 // sec
-// const waittime = 10 // sec
-
 global.app = {
     // deadLine:10,    // min
-    clearTime:21,
-    delayTime:1,
-    waittime:10,
-    blockRoom:['favicon.ico','off','ans'],
-
-    online:{}
+    clearTime: 21,     // 回收器回收间隔
+    delayTime: 0.5,    // 延迟响应时间
+    waitTime: 10,      // 等待函数默认等待时间
+    blockRoom: [
+      '/favicon.ico',
+      '/cre',
+      '/off',
+      '/ans',
+    ],
+    online: {}
 }
 
-// var online = {};
-// const blockRoom = ['favicon.ico','off','ans'];
-
 // error handler
-onerror(app)
+onerror(app, {redirect: '/error.html'})
 
 // middlewares
-app.use(bodyparser({
-  enableTypes:['json', 'form', 'text']
-}))
+app.use(bodyparser({enableTypes:['json', 'form', 'text']}))
 app.use(cors())     // 跨域
 app.use(json())
-app.use(logger())
+// app.use(logger())
 app.use(require('koa-static')(__dirname + '/static'))
 
 // logger
@@ -51,8 +40,9 @@ app.use(async (ctx, next) => {
 })
 
 // routes
-app.use(index.routes(), index.allowedMethods())
-app.use(api.routes(), api.allowedMethods())
+router.use('/api', require('./routes/api'))
+router.use('', require('./routes/index'))
+app.use(router.routes())
 
 // error-handling
 app.on('error', (err, ctx) => {
