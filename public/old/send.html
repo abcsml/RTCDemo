@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P</title>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <script src="./send.js"></script>
+</head>
+<body>
+    <p>
+        <button id="send">发送邀请</button>
+        <h2>你的令牌: 请将此令牌发给对方</h2>
+        <textarea id="my_icecandidate" rows="10" cols="50"></textarea>
+        <h2>输入对方令牌:</h2>
+        <textarea id="other_icecandidate" rows="10" cols="50"></textarea><br>
+        <button id="start">开始聊天</button>
+    </p>
+    <p id='mess'></p>
+    <p>
+        输入: <input type="text" id="content">
+        <button id="input">发送</button>
+    </p>
+</body>
+</html>
