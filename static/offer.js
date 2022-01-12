@@ -48,14 +48,14 @@ async function init(){
     var o = await lc.createOffer({"iceRestart": true})
     await lc.setLocalDescription(o)
     console.log("set sucess")
-    var result = await axios.get('http://abcs.ml:9999/cre/'+room)
-    // var result = await axios.post("http://abcs.ml:9999/off/"+room,lc.localDescription)
+    var result = await axios.get('/cre/'+room)
+    // var result = await axios.post("/off/"+room,lc.localDescription)
 
     var asking = false
     var ans = setInterval(async function(){
         if (asking == true) {return}
         asking = true
-        var result = await axios.get('http://abcs.ml:9999/off/'+room)
+        var result = await axios.get('/off/'+room)
         rec = result
         if (result.data.code){
             await lc.setRemoteDescription(result.data.mess)
@@ -78,7 +78,7 @@ async function init(){
     }, 1*60)
     // console.log("waitting com")
     if (result) {
-        axios.post("http://abcs.ml:9999/off/"+room,lc.localDescription)
+        axios.post("/off/"+room,lc.localDescription)
     } else {alert("error")}
 }
 

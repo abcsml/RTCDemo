@@ -64,7 +64,7 @@ async function init(){
     var ans = setInterval(async function(){
         if (asking == true) {return}
         asking = true
-        var result = await axios.get('http://abcs.ml:9999/ans/'+room)
+        var result = await axios.get('/ans/'+room)
         console.log(result)
         if (result.data.code){
             await rc.setRemoteDescription(result.data.mess)
@@ -83,7 +83,7 @@ async function init(){
     }, 1*60)
     // console.log("waitting com")
     if (result) {
-        axios.post("http://abcs.ml:9999/ans/"+room,rc.localDescription)
+        axios.post("/ans/"+room,rc.localDescription)
         setTimeout(()=>{
             if (rc.iceConnectionState!="connected"){
                 alert("连接失败")
