@@ -66,3 +66,5 @@ function init() {
         }
     }, global.app.clearTime*1000)
 }
+
+console.log("ok")
