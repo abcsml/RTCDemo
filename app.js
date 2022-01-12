@@ -40,7 +40,7 @@ app.use(async (ctx, next) => {
 })
 
 // routes
-router.use('/api', require('./routes/api'))
+router.use('', require('./routes/api'))
 router.use('', require('./routes/index'))
 app.use(router.routes())
 

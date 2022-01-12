@@ -48,7 +48,7 @@ async function init(){
     var o = await lc.createOffer({"iceRestart": true})
     await lc.setLocalDescription(o)
     console.log("set sucess")
-    // var result = await axios.get('http://abcs.ml:9999/off/'+room)
+    var result = await axios.get('http://abcs.ml:9999/cre/'+room)
     // var result = await axios.post("http://abcs.ml:9999/off/"+room,lc.localDescription)
 
     var asking = false
