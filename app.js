@@ -11,7 +11,7 @@ global.app = {
     // deadLine:10,    // min
     clearTime: 21,     // 回收器回收间隔
     delayTime: 0.5,    // 延迟响应时间
-    waitTime: 10,      // 等待函数默认等待时间
+    waitTime: 3,      // 等待函数默认等待时间
     blockRoom: [
       '/favicon.ico',
       '/cre',
